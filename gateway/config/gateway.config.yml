@@ -1,0 +1,54 @@
+http:
+  port: 8080
+  hostname: 0.0.0.0
+admin:
+  port: 9876
+  host: localhost
+
+policies:
+  - basic-auth
+  - cors
+  - expression
+  - key-auth
+  - log
+  - oauth2
+  - proxy
+  - rate-limit
+
+apiEndpoints:
+  web1:
+    host: '*'
+    methods: ['GET']
+    path: '/web1'
+  web2:
+    host: '*'
+    methods: [ 'GET' ]
+    path: '/web2'
+
+serviceEndpoints:
+  app:web-server-1:
+    url: 'http://learning_express_gateway_go_web_server_1/'
+  app:web-server-2:
+    url: 'http://learning_express_gateway_go_web_server_2/'
+
+pipelines:
+  pipe-web1:
+    apiEndpoints:
+      - web1
+    policies:
+      - expression:
+        - action:
+            jscode: 'req.url = "/"; '
+      - proxy:
+          - action:
+              serviceEndpoint: app:web-server-1
+  pipe-web2:
+    apiEndpoints:
+      - web2
+    policies:
+      -   expression:
+            -   action:
+                  jscode: 'req.url = "/"; '
+      -   proxy:
+            -   action:
+                  serviceEndpoint: app:web-server-2

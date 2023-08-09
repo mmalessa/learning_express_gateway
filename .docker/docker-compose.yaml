@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+    application:
+        container_name: ${COMPOSE_PROJECT_NAME}_application
+        user: ${DEVELOPER_UID}:${DEVELOPER_UID}
+        build:
+            context: node
+            target: ${BUILD_TARGET}
+            args:
+                - DEVELOPER_UID
+                - BASE_IMAGE
+        environment:
+            - LOG_LEVEL=${LOG_LEVEL} # DOC https://www.express-gateway.io/docs/runtime/
+        command: bash -c "cd gateway && npm start"
+        ports:
+            - 8080:8080 # http
+            - 8443:8443 # https
+            - 9876:9876 # admin
+        tty: true
+        volumes:
+            - ../:/app
+            - ../logs:/root/.npm/_logs
+        networks:
+            devapp: ~
+
+    go_web_server_1:
+        container_name: ${COMPOSE_PROJECT_NAME}_go_web_server_1
+        build:
+            context: ../
+            dockerfile: .docker/go_web_server/Dockerfile
+        command:
+            - instance1
+        ports:
+            - 8081:80
+        networks:
+            devapp: ~
+
+    go_web_server_2:
+        container_name: ${COMPOSE_PROJECT_NAME}_go_web_server_2
+        build:
+            context: ../
+            dockerfile: .docker/go_web_server/Dockerfile
+        command:
+            - instance2
+        ports:
+            - 8082:80
+        networks:
+            devapp: ~
+
+networks:
+    devapp:
+        name: devapp
+
