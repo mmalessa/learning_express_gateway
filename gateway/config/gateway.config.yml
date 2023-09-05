@@ -1,9 +1,12 @@
 http:
   port: 8080
   hostname: 0.0.0.0
+
+
 admin:
   port: 9876
   host: localhost
+
 
 policies:
   - basic-auth
@@ -15,40 +18,77 @@ policies:
   - proxy
   - rate-limit
 
+
 apiEndpoints:
+
+  web0:
+    host: '*'
+    methods: [ 'GET' ]
+    paths:
+      - '/web0'
+      - '/web0/*'
+
   web1:
     host: '*'
-    methods: ['GET']
-    path: '/web1'
+    methods: [ 'GET' ]
+    paths: 
+      - '/web1'
+      - '/web1/*'
+
   web2:
     host: '*'
     methods: [ 'GET' ]
-    path: '/web2'
+    paths: 
+      - '/web2'
+      - '/web2/*'
+
 
 serviceEndpoints:
+
+  app:web-multi:
+    urls:
+      - 'http://learning_express_gateway_go_dummy_http_1/'
+      - 'http://learning_express_gateway_go_dummy_http_2/'
+
   app:web-server-1:
-    url: 'http://learning_express_gateway_go_web_server_1/'
+    url: 'http://learning_express_gateway_go_dummy_http_1/'
+
   app:web-server-2:
-    url: 'http://learning_express_gateway_go_web_server_2/'
+    url: 'http://learning_express_gateway_go_dummy_http_2/'
+
 
 pipelines:
+
+  pipe-web0:
+    apiEndpoints:
+      - web0
+    policies:
+      - expression:
+        - action:
+            jscode: 'req.url = req.url.replace(/^\/web0/, ""); '
+      - proxy:
+        - action:
+            serviceEndpoint: app:web-multi
+            strategy: round-robin
+
   pipe-web1:
     apiEndpoints:
       - web1
     policies:
       - expression:
         - action:
-            jscode: 'req.url = "/"; '
+            jscode: 'req.url = req.url.replace(/^\/web1/, ""); '
       - proxy:
-          - action:
-              serviceEndpoint: app:web-server-1
+        - action:
+            serviceEndpoint: app:web-server-1
+
   pipe-web2:
     apiEndpoints:
       - web2
     policies:
-      -   expression:
-            -   action:
-                  jscode: 'req.url = "/"; '
-      -   proxy:
-            -   action:
-                  serviceEndpoint: app:web-server-2
+      - expression:
+        - action:
+            jscode: 'req.url = req.url.replace(/^\/web2/, ""); '
+      - proxy:
+        - action:
+            serviceEndpoint: app:web-server-2

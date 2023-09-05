@@ -12,7 +12,7 @@ services:
                 - BASE_IMAGE
         environment:
             - LOG_LEVEL=${LOG_LEVEL} # DOC https://www.express-gateway.io/docs/runtime/
-        command: bash -c "cd gateway && npm start"
+        command: bash -c "cd gateway && npm install && npm start"
         ports:
             - 8080:8080 # http
             - 8443:8443 # https
@@ -24,25 +24,21 @@ services:
         networks:
             devapp: ~
 
-    go_web_server_1:
-        container_name: ${COMPOSE_PROJECT_NAME}_go_web_server_1
-        build:
-            context: ../
-            dockerfile: .docker/go_web_server/Dockerfile
-        command:
-            - instance1
+    go_dummy_http_1:
+        container_name: ${COMPOSE_PROJECT_NAME}_go_dummy_http_1
+        image: mmalessa/go-dummy-http:1.0.0
+        environment:
+            - APP_INSTANCE=http1
         ports:
             - 8081:80
         networks:
             devapp: ~
 
-    go_web_server_2:
-        container_name: ${COMPOSE_PROJECT_NAME}_go_web_server_2
-        build:
-            context: ../
-            dockerfile: .docker/go_web_server/Dockerfile
-        command:
-            - instance2
+    go_dummy_http_2:
+        container_name: ${COMPOSE_PROJECT_NAME}_go_dummy_http_2
+        image: mmalessa/go-dummy-http:1.0.0
+        environment:
+            - APP_INSTANCE=http2
         ports:
             - 8082:80
         networks:
